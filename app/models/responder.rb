@@ -1,13 +1,16 @@
 class Responder < ActiveRecord::Base
+  self.primary_key = :name
+
   belongs_to :emergency, foreign_key: 'emergency_code'
 
   validates :name, presence: true, uniqueness: true
   validates :capacity, presence: true, inclusion: (1..5)
   validates :type, presence: true
 
-  scope :available, ->       { where(emergency: nil) }
-  scope :by_type,   ->(type) { where(type: type) }
-  scope :on_duty,   ->       { where(on_duty: true) }
+  scope :by_type,     ->(type) { where(type: type) }
+  scope :by_capacity, ->(cap)  { where(capacity: cap) }
+  scope :available,   ->       { where(emergency: nil).on_duty }
+  scope :on_duty,     ->       { where(on_duty: true) }
 
   def self.find(arg)
     find_by(name: arg) || raise(ActiveRecord::RecordNotFound)
@@ -30,8 +33,5 @@ class Responder < ActiveRecord::Base
 
   def to_param
     name
-  end
-
-  def emergency_code
   end
 end
